@@ -1,85 +1,70 @@
-using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
-using System.Collections;
-
-public enum GameState
-{
-    Iniciando,
-    MenuPrincipal,
-    Gameplay
-}
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    [SerializeField] private GameState _currentState;
-    public GameState CurrentState => _currentState;
+    public enum GameState
+    {
+        Iniciando,
+        MenuPrincipal,
+        Gameplay
+    }
 
-    public PlayerInput playerInput;
+    [SerializeField] private GameState estadoAtual;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
         {
             Destroy(gameObject);
             return;
         }
 
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
+        MudarEstado(GameState.Iniciando);
     }
 
     private void Start()
     {
-        LoadScene("Splash");
+        CarregarCena("Splash");
     }
 
-    public void ChangeState(GameState newState)
+    public void MudarEstado(GameState novoEstado)
     {
-        _currentState = newState;
-        Debug.Log($"<color=cyan>[GameManager]</color> Estado: <b>{_currentState}</b>");
+        estadoAtual = novoEstado;
+        Debug.Log($"<color=green>Estado do Jogo:</color> <b>{estadoAtual}</b>");
     }
 
-    public void LoadScene(string sceneName)
+    public void CarregarCena(string nomeDaCena)
     {
-        if (CanLoadScene(sceneName))
+        SceneManager.LoadScene(nomeDaCena);
+
+        switch (nomeDaCena)
         {
-            SceneManager.LoadScene(sceneName);
-            UpdateStateFromScene(sceneName);
-        }
-    }
-
-    private bool CanLoadScene(string sceneName)
-    {
-        return true;
-    }
-
-    private void UpdateStateFromScene(string sceneName)
-    {
-        switch (sceneName)
-        {
-            case "Splash":
-                ChangeState(GameState.Iniciando);
+            case "Menu":
+                MudarEstado(GameState.MenuPrincipal);
                 break;
-            case "MenuPrincipal":
-                ChangeState(GameState.MenuPrincipal);
+            case "Game":
+                MudarEstado(GameState.Gameplay);
                 break;
-            case "GetStarted_Scene":
-                ChangeState(GameState.Gameplay);
+            case "_Boot":
+                MudarEstado(GameState.Iniciando);
                 break;
         }
     }
 
-    public void AssignPlayerInput(PlayerInput input)
+    public void AlocarInputAoPlayer(PlayerInput playerInput)
     {
-        playerInput = input;
-    }
-
-    public void QuitGame()
-    {
-        Application.Quit();
+        if (playerInput != null)
+        {
+            Debug.Log("GameManager: Input alocado com sucesso ao Player.");
+        }
     }
 }
